@@ -513,3 +513,5 @@ with open('final_target_data.json', 'w', encoding='utf-8') as f:
 
 
 ## 3. 승패 예측
+
+로지스틱 ㄱ..?
