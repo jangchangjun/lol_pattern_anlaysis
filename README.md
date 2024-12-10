@@ -511,3 +511,5 @@ with open('final_target_data.json', 'w', encoding='utf-8') as f:
     json.dump(full_table, f, ensure_ascii=False, indent=4)
 ```
 
+
+## 3. 승패 예측
