@@ -514,4 +514,109 @@ with open('final_target_data.json', 'w', encoding='utf-8') as f:
 
 ## 3. 승패 예측
 
-로지스틱 ㄱ..?
+### 3.1 예측 기준
+
+승리할 확률을 가장 높게 예측하는 데이터 항목을 추출하기 위해 라인전 이전 / 이후의 전투, 운영, 격차 총 38개의 데이터를 우선 y인 targetWin과의 상관계수를 구해본 결과
+
+```
+=== 상관관계: combat_at14 ===
+at14killsRatio         0.170556
+at14deathsRatio       -0.172579
+at14assistsRatio       0.154446
+at14solokillsRatio     0.052661
+at14solodeathsRatio   -0.038539
+at14dpm                0.111164
+at14dtpm              -0.058771
+dtype: float64
+
+=== 상관관계: combat_af14 ===
+af14killsRatio         0.529520
+af14deathsRatio       -0.613969
+af14assistsRatio       0.635018
+af14solokillsRatio     0.236908
+af14solodeathsRatio   -0.172113
+af14dpm                0.284820
+af14dtpm              -0.200476
+dtype: float64
+
+=== 상관관계: manage_at14 ===
+at14cspm    0.048719
+at14gpm     0.161018
+at14xpm     0.105548
+at14dpd     0.148615
+at14dpg     0.046265
+dtype: float64
+
+=== 상관관계: manage_af14 ===
+af14cspm    0.092189
+af14gpm     0.528745
+af14xpm     0.606428
+af14dpd     0.458041
+af14dpg    -0.065760
+dtype: float64
+
+=== 상관관계: gap_at14 ===
+at14dpmdiff     0.135677
+at14dtpmdiff   -0.092091
+at14cspmdiff    0.084900
+at14gpmdiff     0.237004
+at14xpmdiff     0.164662
+at14dpddiff     0.192689
+at14dpgdiff     0.033404
+dtype: float64
+
+=== 상관관계: gap_af14 ===
+af14dpmdiff     0.422941
+af14dtpmdiff   -0.277178
+af14cspmdiff    0.142876
+af14gpmdiff     0.661047
+af14xpmdiff     0.725131
+af14dpddiff     0.587196
+af14dpgdiff    -0.066193
+```
+
+at14보단 af14의 데이터의 상관계수가 더 높았으며 그 중에서도 gap 즉 격차 지표의 상관계수가 전체적으로 높은 계수를 띄고있었다. 
+
+이에 추가로 게임의 승리를 좌지우지 하는건 결국 전투와 운영을 통한 상대와의 격차 차이가 가장 큰 요인이라 판단해 gap데이터로 정확도를 계산하고자 하였다.
+
+보다 더 정확한 예측값을 추출하기 위해 at/af14 데이터 모두를 사용하되, y와의 상관계수가 일정값을 넘어가지 않으면 그 데이터값을 삭제하였다.
+
+### 3.2 정확도 예측
+
+```
+=== 피처 상관계수 ===
+at14dpmdiff     0.135677
+at14dtpmdiff   -0.092091
+at14cspmdiff    0.084900
+at14gpmdiff     0.237004
+at14xpmdiff     0.164662
+at14dpddiff     0.192689
+at14dpgdiff     0.033404
+af14dpmdiff     0.422941
+af14dtpmdiff   -0.277178
+af14cspmdiff    0.142876
+af14gpmdiff     0.661047
+af14xpmdiff     0.725131
+af14dpddiff     0.587196
+af14dpgdiff    -0.066193
+```
+
+gap at/af14와 y와의 상관계수를 먼저 추출해보았다.
+이 프로젝트에선 상관계수가 절댓값 0.1을 넘지 않을 시 승리 예측에 큰 영향을 주지 않는 데이터라고 판단, 그 데이터를 삭제한 뒤 정확도 계산을 진행하였다.
+
+그 뒤 선택된 데이터들을 MinMmaxScaler를 이용해 정규화를 진행한 후, 승/패 예측 프로그램인 만큼
+이진 분류 문제에 적합한 모델인 로지스틱 회귀 모델을 이용해 학습을 진행하였다.
+
+#### 예측 결과
+
+위와 같은 기준으로 학습한 뒤 정확도를 계산해본 결과
+
+```
+=== Logistic Regression 모델 ===
+정확도 (Accuracy): 0.9342
+AUROC: 0.9783
+
+```
+
+모델의 정확도는 0.93 모델의 성능을 표현하는 auroc값은 0.978로 높게 측정되었다.
+
